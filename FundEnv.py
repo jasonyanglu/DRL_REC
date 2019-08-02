@@ -5,7 +5,7 @@ import copy
 #### item embedding dict
 df_items = pd.read_csv('item_space.csv')
 item_ids = df_items['item_ids']
-item_emb = df_items['item_emb']
+item_emb = df_items['item_emb'].apply(lambda x: [float(_) for _ in x.split(',')])
 item_ids_emb_dict = dict(zip(item_ids, item_emb))
 #### samples
 df_samples = pd.read_csv('samples.csv')
@@ -18,7 +18,7 @@ def get_state_ids(loc, sample_data):
 
 
 def get_state_emb(state_ids, dict):
-    state_emb = np.array([np.array(dict[v].split(','), dtype=float) for v in state_ids])
+    state_emb = np.array([dict[v] for v in state_ids])
     state_emb = state_emb.reshape((2, 30))
     return state_emb
 
@@ -45,7 +45,8 @@ class FundEnv(object):
             self.user_count = 0
         self.step_count = 0
         self.state = get_state_ids(self.user_count, df_samples['state'])
-        return self.state
+        state_emb = get_state_emb(self.state, item_ids_emb_dict)
+        return state_emb
 
     def step(self, action):
         ##### click network and purchase network
@@ -59,4 +60,6 @@ class FundEnv(object):
             self.user_count += 1
         else:
             done = 0
-        return self.state, reward, done
+        state_emb = get_state_emb(self.state, item_ids_emb_dict)
+        return state_emb, reward, done
+

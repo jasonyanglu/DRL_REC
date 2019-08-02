@@ -82,8 +82,8 @@ class Critic(object):
             self.len_seq: len_seq
         })
 
-    def predict(self, state, action, len_seq):
-        return self.sess.run(self.q_value, feed_dict={self.state: state, self.action: action, self.len_seq: len_seq})
+    # def predict(self, state, action, len_seq):
+    #     return self.sess.run(self.q_value, feed_dict={self.state: state, self.action: action, self.len_seq: len_seq})
 
     def predict_target(self, state, action, len_seq):
         return self.sess.run(self.target_q_value, feed_dict={self.target_state: state, self.target_action: action,

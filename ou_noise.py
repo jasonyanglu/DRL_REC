@@ -1,7 +1,9 @@
 import numpy as np
 
+
 class OUNoise:
     """noise for action"""
+
     def __init__(self, a_dim, mu=0, theta=0.5, sigma=0.2):
         self.a_dim = a_dim
         self.mu = mu

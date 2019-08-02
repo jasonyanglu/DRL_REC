@@ -67,7 +67,7 @@ class Actor(object):
         with tf.variable_scope(scope):
             state = tf.placeholder(tf.float32, [None, self.s_dim], "state")
             state_ = tf.reshape(state, [-1, self.weights_len, int(self.s_dim / self.weights_len)])
-            len_seq = tf.placeholder(tf.int32, [None])
+            len_seq = tf.placeholder(tf.int64, [None])
             cell = tf.nn.rnn_cell.GRUCell(self.output_size,
                                           activation=tf.nn.relu,
                                           kernel_initializer=tf.initializers.random_normal(),
