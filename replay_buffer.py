@@ -5,7 +5,7 @@ from simulator import data
 import random
 
 
-class RelayBuffer(object):
+class ReplayBuffer(object):
     def __init__(self, buffer_size):
         self.buffer_size = buffer_size
         self.count = 0
