@@ -3,16 +3,18 @@ import tensorflow as tf
 
 class Actor(object):
     """policy function approximator"""
-    def __init__(self, sess, s_dim, a_dim, batch_size, output_size, weights_len, tau, learning_rate, scope="actor"):
+    def __init__(self, sess, state_item_num, action_item_num, emb_dim, batch_size, tau, learning_rate, scope="actor"):
         self.sess = sess
-        self.s_dim = s_dim
-        self.a_dim = a_dim
+        self.state_item_num = state_item_num
+        self.action_item_num = action_item_num
         self.batch_size = batch_size
-        self.output_size = output_size
-        self.weights_len = weights_len
+        self.emb_dim = emb_dim
         self.tau = tau
         self.learning_rate = learning_rate
         self.scope = scope
+
+        self.s_dim = emb_dim * state_item_num
+        self.a_dim = emb_dim * action_item_num
 
         with tf.variable_scope(self.scope):
             # estimator actor network
@@ -66,9 +68,9 @@ class Actor(object):
         """build the tensorflow graph"""
         with tf.variable_scope(scope):
             state = tf.placeholder(tf.float32, [None, self.s_dim], "state")
-            state_ = tf.reshape(state, [-1, self.weights_len, int(self.s_dim / self.weights_len)])
+            state_ = tf.reshape(state, [-1, self.state_item_num, self.emb_dim])
             len_seq = tf.placeholder(tf.int64, [None])
-            cell = tf.nn.rnn_cell.GRUCell(self.output_size,
+            cell = tf.nn.rnn_cell.GRUCell(self.a_dim,
                                           activation=tf.nn.relu,
                                           kernel_initializer=tf.initializers.random_normal(),
                                           bias_initializer=tf.zeros_initializer())
@@ -80,7 +82,8 @@ class Actor(object):
         self.sess.run(self.optimizer, feed_dict={self.state: state, self.a_gradient: a_gradient, self.len_seq: len_seq})
 
     def predict(self, state, len_seq):
-        return self.sess.run(self.action_weights, feed_dict={self.state: state, self.len_seq: len_seq})
+        action_weights = self.sess.run(self.action_weights, feed_dict={self.state: state, self.len_seq: len_seq})
+        return action_weights.reshape((-1, self.action_item_num, self.emb_dim))
 
     def predict_target(self, state, len_seq):
         return self.sess.run(self.target_action_weights, feed_dict={self.target_state: state,

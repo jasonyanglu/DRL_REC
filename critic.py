@@ -3,16 +3,20 @@ import tensorflow as tf
 
 class Critic(object):
     """value function approximator"""
-    def __init__(self, sess, s_dim, a_dim, num_actor_vars, weights_len, gamma, tau, learning_rate, scope="critic"):
+
+    def __init__(self, sess, state_item_num, action_item_num, emb_dim, num_actor_vars, gamma, tau, learning_rate,
+                 scope="critic"):
         self.sess = sess
-        self.s_dim = s_dim
-        self.a_dim = a_dim
+        self.state_item_num = state_item_num
+        self.action_item_num = action_item_num
         self.num_actor_vars = num_actor_vars
-        self.weights_len = weights_len
         self.gamma = gamma
         self.tau = tau
         self.learning_rate = learning_rate
         self.scope = scope
+
+        self.s_dim = emb_dim * state_item_num
+        self.a_dim = emb_dim * action_item_num
 
         with tf.variable_scope(self.scope):
             # estimator critic network
@@ -21,7 +25,8 @@ class Critic(object):
             self.network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="estimator_critic")
 
             # target critic network
-            self.target_state, self.target_action, self.target_q_value, self.target_len_seq = self._build_net("target_critic")
+            self.target_state, self.target_action, self.target_q_value, self.target_len_seq = self._build_net(
+                "target_critic")
             # self.target_network_params = tf.trainable_variables()[(len(self.network_params) + self.num_actor_vars):]
             self.target_network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_critic")
 
@@ -57,10 +62,11 @@ class Critic(object):
     def _build_net(self, scope):
         with tf.variable_scope(scope):
             state = tf.placeholder(tf.float32, [None, self.s_dim], "state")
-            state_ = tf.reshape(state, [-1, self.weights_len, int(self.s_dim / self.weights_len)])
             action = tf.placeholder(tf.float32, [None, self.a_dim], "action")
-            len_seq = tf.placeholder(tf.int64, [None], name="critic_len_seq")
-            cell = tf.nn.rnn_cell.GRUCell(self.weights_len,
+            len_seq = tf.placeholder(tf.int64, [None, ], name="critic_len_seq")
+
+            state_ = tf.reshape(state, [-1, self.state_item_num, int(self.s_dim / self.state_item_num)])
+            cell = tf.nn.rnn_cell.GRUCell(self.state_item_num,
                                           activation=tf.nn.relu,
                                           kernel_initializer=tf.initializers.random_normal(),
                                           bias_initializer=tf.zeros_initializer()
@@ -86,8 +92,9 @@ class Critic(object):
     #     return self.sess.run(self.q_value, feed_dict={self.state: state, self.action: action, self.len_seq: len_seq})
 
     def predict_target(self, state, action, len_seq):
-        return self.sess.run(self.target_q_value, feed_dict={self.target_state: state, self.target_action: action,
-                                                             self.len_seq: len_seq})
+        return self.sess.run(self.target_q_value, feed_dict={self.target_state: state,
+                                                             self.target_action: action,
+                                                             self.target_len_seq: len_seq})
 
     def action_gradients(self, state, action, len_seq):
         return self.sess.run(self.a_gradient, feed_dict={self.state: state, self.action: action, self.len_seq: len_seq})

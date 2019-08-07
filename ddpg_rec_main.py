@@ -26,12 +26,12 @@ def main(args):
         loss = 0.
         state = env.reset()
         # update average parameters every 1000 episodes
-        if (i + 1) % 10 == 0:
-            env.rewards, env.group_sizes, env.avg_states, env.avg_actions = env.avg_group()
+        # if (i + 1) % 10 == 0:
+        #     env.rewards, env.group_sizes, env.avg_states, env.avg_actions = env.avg_group()
 
         for j in range(args['max_episodes_len']):
             action = agent.action(state)
-            reward, n_state, done = env.step(action)
+            n_state, reward, done = env.step(action)
             ep_reward += reward
             ep_q_value_, critic_loss = agent.perceive_and_train(state, action, reward, n_state, done)
             ep_q_value += ep_q_value_
@@ -39,9 +39,9 @@ def main(args):
             state = n_state
             if done:
                 break
-            if (j + 1) % 50 == 0:
+            if (j + 1) % 10 == 0:
                 logger.info("=========={0} episode of {1} round: {2} reward=========".format(i, j, ep_reward))
-            agent.write_summary(ep_reward, ep_q_value_, loss)
+            agent.write_summary(ep_reward, ep_q_value_, loss, i)
 
     agent.save()
 

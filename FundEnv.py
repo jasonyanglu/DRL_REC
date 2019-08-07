@@ -17,17 +17,22 @@ def get_state_ids(loc, sample_data):
     return state_ids
 
 
-def get_state_emb(state_ids, dict):
-    state_emb = np.array([dict[v] for v in state_ids])
-    state_emb = state_emb.reshape((2, 30))
-    return state_emb
+def get_item_emb(ids, dict):
+    if len(np.asarray(ids).shape) == 1:
+        emb = np.array([dict[v] for v in ids])
+    else:
+        emb = []
+        for i in ids:
+            emb.append(np.array([dict[v] for v in i]))
+        emb = np.asarray(emb)
+    return emb
 
 
 def next_s(state, action, reward_detail):
     next_state = copy.copy(state)
     for i in range(0, len(reward_detail)):
         if reward_detail[i] > 0:
-            next_state.append(action[i])
+            next_state = np.append(next_state, action[i])
     next_state = next_state[-6:]
     return next_state
 
@@ -45,7 +50,7 @@ class FundEnv(object):
             self.user_count = 0
         self.step_count = 0
         self.state = get_state_ids(self.user_count, df_samples['state'])
-        state_emb = get_state_emb(self.state, item_ids_emb_dict)
+        state_emb = get_item_emb(self.state, item_ids_emb_dict)
         return state_emb
 
     def step(self, action):
@@ -60,6 +65,6 @@ class FundEnv(object):
             self.user_count += 1
         else:
             done = 0
-        state_emb = get_state_emb(self.state, item_ids_emb_dict)
+        state_emb = get_item_emb(self.state, item_ids_emb_dict)
         return state_emb, reward, done
 
