@@ -97,6 +97,7 @@ class DDPG_REC:
         action_batch = np.asarray([_[1] for _ in samples])
         reward_batch = np.asarray([_[2] for _ in samples])
         n_state_batch = np.asarray([_[3] for _ in samples])
+        done_batch = np.asarray([_[4] for _ in samples])
 
         seq_len_batch = np.asarray([self.state_item_num] * self.batch_size)
 
@@ -108,7 +109,10 @@ class DDPG_REC:
                                                     n_action_emb_batch.reshape((-1, self.a_dim)), seq_len_batch)
         y_batch = []
         for i in range(self.batch_size):
-            y_batch.append(reward_batch[i] + self.critic.gamma * target_q_batch[i])
+            if done_batch[i]:
+                y_batch.append(reward_batch[i])
+            else:
+                y_batch.append(reward_batch[i] + self.critic.gamma * target_q_batch[i])
 
         # train critic
         q_value, critic_loss, _ = self.critic.train(state_batch, action_batch,
@@ -141,7 +145,8 @@ class DDPG_REC:
         self.replay_buffer.add(list(state.reshape((self.s_dim,))),
                                list(action_emb.reshape((self.a_dim,))),
                                [reward],
-                               list(n_state.reshape((self.s_dim,))))
+                               list(n_state.reshape((self.s_dim,))),
+                               [done])
 
         # Store transitions to replay start size then start training
         ep_q_value_, critic_loss = 0, 0

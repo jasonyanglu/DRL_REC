@@ -17,8 +17,8 @@ class ReplayBuffer(object):
         #     sample.append(row['n_state_float'])
         #     self.buffer.append(sample)
 
-    def add(self, state, action, reward, next_reward):
-        experience = (state, action, reward, next_reward)
+    def add(self, state, action, reward, next_reward, done):
+        experience = (state, action, reward, next_reward, done)
         if self.count < self.buffer_size:
             self.buffer.append(experience)
             self.count += 1
