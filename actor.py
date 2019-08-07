@@ -19,13 +19,13 @@ class Actor(object):
         with tf.variable_scope(self.scope):
             # estimator actor network
             self.state, self.action_weights, self.len_seq = self._build_net("estimator_actor")
-            self.network_params = tf.trainable_variables()
-            # self.network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='estimator_actor')
+            # self.network_params = tf.trainable_variables()
+            self.network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor/estimator_actor')
 
             # target actor network
             self.target_state, self.target_action_weights, self.target_len_seq = self._build_net("target_actor")
-            self.target_network_params = tf.trainable_variables()[len(self.network_params):]
-            # self.target_network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_actor')
+            # self.target_network_params = tf.trainable_variables()[len(self.network_params):]
+            self.target_network_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor/target_actor')
 
             # operator for periodically updating target network with estimator network weights
             self.update_target_network_params = [

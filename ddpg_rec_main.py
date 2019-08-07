@@ -7,6 +7,8 @@ from ddpg_rec import DDPG_REC
 
 def main(args):
     env = FundEnv()
+    env.load_reward_net()
+
     item_space = item_ids_emb_dict
     agent = DDPG_REC(int(args['state_item_num']),
                      int(args['action_item_num']),
